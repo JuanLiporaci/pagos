@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Telegraf, session } = require('telegraf');
-const { setupUserSession } = require('./utils/userSession');
+const { middleware: sessionMiddleware } = require('./utils/userSession');
 const { setupDriveService } = require('./services/drive');
 const { setupSheetsService } = require('./services/sheets');
 
@@ -9,13 +9,11 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // Configurar middleware de sesión
 bot.use(session());
+bot.use(sessionMiddleware);
 
 // Configurar servicios
 setupDriveService();
 setupSheetsService();
-
-// Configurar sesión de usuario
-setupUserSession(bot);
 
 // Manejar fotos y documentos
 bot.on(['photo', 'document'], async (ctx) => {
