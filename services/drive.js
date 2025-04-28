@@ -4,48 +4,12 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
-let drive;
+const auth = new google.auth.GoogleAuth({
+  keyFile: 'credentials.json',
+  scopes: ['https://www.googleapis.com/auth/drive']
+});
 
-const setupDriveService = () => {
-    try {
-        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-        const auth = new google.auth.GoogleAuth({
-            credentials,
-            scopes: ['https://www.googleapis.com/auth/drive.file']
-        });
-
-        drive = google.drive({ version: 'v3', auth });
-        console.log('Drive service initialized successfully');
-    } catch (error) {
-        console.error('Error initializing Drive service:', error);
-        throw error;
-    }
-};
-
-const uploadFile = async (filePath, fileName) => {
-    try {
-        const fileMetadata = {
-            name: fileName,
-            parents: [process.env.DRIVE_FOLDER_ID]
-        };
-
-        const media = {
-            mimeType: 'application/octet-stream',
-            body: fs.createReadStream(filePath)
-        };
-
-        const response = await drive.files.create({
-            resource: fileMetadata,
-            media: media,
-            fields: 'id'
-        });
-
-        return response.data.id;
-    } catch (error) {
-        console.error('Error uploading file to Drive:', error);
-        throw error;
-    }
-};
+const drive = google.drive({ version: 'v3', auth });
 
 const saveFile = async (ctx) => {
   const fileId = ctx.session.fileId;
@@ -96,8 +60,4 @@ const saveFile = async (ctx) => {
   return link;
 };
 
-module.exports = {
-    setupDriveService,
-    uploadFile,
-    saveFile
-};
+module.exports = { saveFile };

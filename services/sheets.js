@@ -1,43 +1,33 @@
 const { google } = require('googleapis');
 
-let sheets;
+const auth = new google.auth.GoogleAuth({
+  keyFile: 'credentials.json',
+  scopes: ['https://www.googleapis.com/auth/spreadsheets']
+});
 
-const setupSheetsService = () => {
-    try {
-        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-        const auth = new google.auth.GoogleAuth({
-            credentials,
-            scopes: ['https://www.googleapis.com/auth/spreadsheets']
-        });
+const sheets = google.sheets({ version: 'v4', auth });
+const SPREADSHEET_ID = '1CNyD_seHZZyB-2NPusYEpNGF8m5LzUz87RHIYitfnAU';
+const SHEET_NAME = 'Pagos';
 
-        sheets = google.sheets({ version: 'v4', auth });
-        console.log('Sheets service initialized successfully');
-    } catch (error) {
-        console.error('Error initializing Sheets service:', error);
-        throw error;
+const appendGasto = async (user, data, fileUrl) => {
+  const values = [[
+    user.username || user.first_name || user.id,
+    new Date().toLocaleString('es-VE', { timeZone: 'America/Caracas' }),
+    data.tipo,
+    data.monto,
+    data.comentario,
+    data.metodo || '',
+    fileUrl
+  ]];
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${SHEET_NAME}!A1`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values
     }
+  });
 };
 
-const appendRow = async (values) => {
-    try {
-        const response = await sheets.spreadsheets.values.append({
-            spreadsheetId: process.env.SHEET_ID,
-            range: `${process.env.SHEET_NAME}!A:Z`,
-            valueInputOption: 'RAW',
-            insertDataOption: 'INSERT_ROWS',
-            resource: {
-                values: [values]
-            }
-        });
-
-        return response.data;
-    } catch (error) {
-        console.error('Error appending row to sheet:', error);
-        throw error;
-    }
-};
-
-module.exports = {
-    setupSheetsService,
-    appendRow
-};
+module.exports = { appendGasto };
