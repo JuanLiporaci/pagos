@@ -1,8 +1,22 @@
 {
+  "name": "bot-pagos",
+  "version": "1.0.0",
+  "description": "Bot de Telegram para gestión de gastos por categoría y departamento",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
+  },
   "dependencies": {
-    "axios": "^1.8.4",
-    "dotenv": "^16.5.0",
-    "googleapis": "^148.0.0",
-    "telegraf": "^4.16.3"
+    "bot-pagos": "file:",
+    "dotenv": "^16.3.1",
+    "googleapis": "^128.0.0",
+    "telegraf": "^4.15.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
