@@ -47,12 +47,33 @@ O escribe el tipo de gasto:`);
       ctx.session.tipo = input;
     }
 
+    ctx.session.estado = 'fechaGasto';
+    return ctx.reply('¿Cuál es la fecha del gasto? (Usa formato MM/DD) 📅');
+  },
+
+  handleFechaGasto: async (ctx) => {
+    const text = ctx.message.text.trim();
+    
+    // Validar el formato de fecha MM/DD
+    const dateRegex = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[12][0-9]|3[01])$/;
+    
+    if (!dateRegex.test(text)) {
+      return ctx.reply('Por favor, ingresa la fecha en formato MM/DD 📅\nPor ejemplo: 05/23 para 23 de mayo');
+    }
+    
+    ctx.session.fechaGasto = text;
     ctx.session.estado = 'monto';
     return ctx.reply('¿Cuál fue el monto total del gasto? 💰');
   },
 
   handleMonto: async (ctx) => {
     const text = ctx.message.text.trim();
+    
+    // Si venimos de fechaGasto, procesar la fecha
+    if (ctx.session.estado === 'fechaGasto') {
+      return module.exports.handleFechaGasto(ctx);
+    }
+    
     ctx.session.monto = text;
     ctx.session.estado = 'comentario';
     return ctx.reply(`¿Deseas añadir un comentario o detalle adicional? ✏️
@@ -119,11 +140,12 @@ O escribe el tipo de gasto:`);
     await ctx.reply('Guardando el gasto... 📦');
 
     try {
+      // Conservar el contexto completo para el guardado
       const fileUrl = await googleDrive.saveFile(ctx);
       await googleSheets.appendGasto(ctx.from, ctx.session, fileUrl);
       await ctx.reply('✅ Gasto guardado con éxito.');
     } catch (err) {
-      console.error(err);
+      console.error('Error en gastosFlow:', err);
       await ctx.reply('❌ Ocurrió un error al guardar el gasto.');
     }
 
